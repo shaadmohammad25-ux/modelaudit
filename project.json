@@ -1,0 +1,23 @@
+{
+  "overview": "ModelAudit is a professional SaaS platform for AI ethics, bias detection, and safety auditing. Submit AI model outputs for structured analysis — get risk scores, bias flags across 7 dimensions, safety assessments, regulatory compliance mapping, and prioritized remediation guidance.",
+  "features": [
+    "AI-powered bias detection across 7 dimensions (gender, race, age, disability, etc.)",
+    "Safety analysis for harmful content, misinformation, PII exposure, and manipulation",
+    "Animated risk score meter with Claude-generated verdict and audit trail",
+    "Regulatory compliance mapping against EU AI Act, NYC Local Law 144, and more",
+    "3-step audit wizard with text paste and CSV file upload support",
+    "Dashboard with stat cards, recent audits table, and activity feed",
+    "Newspaper-column layout with authoritative investigative journalism aesthetic"
+  ],
+  "category": "developer-tools",
+  "tags": [
+    "ai-ethics",
+    "bias-detection",
+    "compliance",
+    "auditing",
+    "saas",
+    "transparency",
+    "safety"
+  ],
+  "last_updated": "2026-04-23T19:21:23.763Z"
+}

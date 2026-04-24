@@ -1,0 +1,153 @@
+type http_request_result = 
+ record {
+   body: blob;
+   headers: vec http_header;
+   status: nat;
+ };
+type http_header = 
+ record {
+   name: text;
+   value: text;
+ };
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type TransformationOutput = 
+ record {
+   body: blob;
+   headers: vec http_header;
+   status: nat;
+ };
+type TransformationInput = 
+ record {
+   context: blob;
+   response: http_request_result;
+ };
+type RiskTier = 
+ variant {
+   critical;
+   high;
+   low;
+   medium;
+ };
+type DashboardStats = 
+ record {
+   avgRiskScore: float64;
+   openIssues: nat;
+   reportsGenerated: nat;
+   totalAudits: nat;
+ };
+type AuditSummary = 
+ record {
+   completedAt: opt int;
+   createdAt: int;
+   deploymentContext: text;
+   id: AuditId;
+   modelName: text;
+   modelVersion: opt text;
+   overallScore: opt float64;
+   riskTier: opt RiskTier;
+   status: AuditStatus;
+ };
+type AuditStatus = 
+ variant {
+   complete;
+   failed;
+   pending;
+   processing;
+ };
+type AuditResults = 
+ record {
+   biasResults: opt text;
+   inputSummary: opt text;
+   overallScore: opt float64;
+   recommendations: opt text;
+   regulatoryResults: opt text;
+   riskTier: opt RiskTier;
+   safetyResults: opt text;
+   verdict: opt text;
+ };
+type AuditRecord = 
+ record {
+   biasResults: opt text;
+   completedAt: opt int;
+   createdAt: int;
+   createdBy: text;
+   deploymentContext: text;
+   id: AuditId;
+   inputCsvUrl: opt text;
+   inputSummary: opt text;
+   inputText: opt text;
+   intendedPopulation: text;
+   jurisdiction: text;
+   modelName: text;
+   modelProvider: opt text;
+   modelVersion: opt text;
+   orgId: text;
+   outputCount: opt nat;
+   overallScore: opt float64;
+   recommendations: opt text;
+   regulatoryResults: opt text;
+   reportTitle: opt text;
+   riskTier: opt RiskTier;
+   safetyResults: opt text;
+   selectedBiasDimensions: vec text;
+   selectedFrameworks: vec text;
+   selectedSafetyChecks: vec text;
+   status: AuditStatus;
+   summaryTone: text;
+   verdict: opt text;
+ };
+type AuditInput = 
+ record {
+   deploymentContext: text;
+   inputCsvUrl: opt text;
+   inputText: opt text;
+   intendedPopulation: text;
+   jurisdiction: text;
+   modelName: text;
+   modelProvider: opt text;
+   modelVersion: opt text;
+   outputCount: opt nat;
+   reportTitle: opt text;
+   selectedBiasDimensions: vec text;
+   selectedFrameworks: vec text;
+   selectedSafetyChecks: vec text;
+   summaryTone: text;
+ };
+type AuditId = text;
+type ApiKeyRecord = 
+ record {
+   createdAt: int;
+   id: text;
+   key: text;
+   lastUsed: opt int;
+   name: text;
+ };
+type ActivityEvent = 
+ record {
+   auditId: opt text;
+   description: text;
+   eventType: text;
+   id: text;
+   timestamp: int;
+ };
+service : {
+  _initializeAccessControl: () -> ();
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  createAudit: (input: AuditInput) -> (AuditId);
+  generateApiKey: () -> (text);
+  getAudit: (id: AuditId) -> (opt AuditRecord) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getDashboardStats: () -> (DashboardStats);
+  isCallerAdmin: () -> (bool) query;
+  listActivityFeed: () -> (vec ActivityEvent) query;
+  listApiKeys: () -> (vec ApiKeyRecord) query;
+  listAudits: () -> (vec AuditSummary);
+  runAudit: (id: AuditId) -> ();
+  transform: (input: TransformationInput) -> (TransformationOutput) query;
+  updateAuditResults: (id: AuditId, results: AuditResults) -> ();
+}

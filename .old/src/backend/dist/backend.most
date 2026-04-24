@@ -1,0 +1,98 @@
+// Version: 1.0.0
+type ActivityEvent__872769373 =
+  {
+    auditId : ?Text;
+    description : Text;
+    eventType : Text;
+    id : Text;
+    timestamp : Int
+  };
+type ApiKeyRecord__140524964 =
+  {createdAt : Int; id : Text; key : Text; lastUsed : ?Int; name : Text};
+type AuditId__923176417 = Text;
+type AuditRecord__903400086 =
+  {
+    biasResults : ?Text;
+    completedAt : ?Int;
+    createdAt : Int;
+    createdBy : Text;
+    deploymentContext : Text;
+    id : AuditId__923176417;
+    inputCsvUrl : ?Text;
+    inputSummary : ?Text;
+    inputText : ?Text;
+    intendedPopulation : Text;
+    jurisdiction : Text;
+    modelName : Text;
+    modelProvider : ?Text;
+    modelVersion : ?Text;
+    orgId : Text;
+    outputCount : ?Nat;
+    overallScore : ?Float;
+    recommendations : ?Text;
+    regulatoryResults : ?Text;
+    reportTitle : ?Text;
+    riskTier : ?RiskTier__147234798;
+    safetyResults : ?Text;
+    selectedBiasDimensions : [Text];
+    selectedFrameworks : [Text];
+    selectedSafetyChecks : [Text];
+    status : AuditStatus__197554449;
+    summaryTone : Text;
+    verdict : ?Text
+  };
+type AuditStatus__197554449 = {#complete; #failed; #pending; #processing};
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type List__415060402<T> = List__790383201<T>;
+type List__790383201<T> =
+  {
+    var blockIndex : Nat__490723111;
+    var blocks : [var [var ?T]];
+    var elementIndex : Nat__490723111
+  };
+type Map__158565046<K, V> = Map__297112838<K, V>;
+type Map__297112838<K, V> =
+  {var root : Node__46230540<K, V>; var size : Nat__490723111};
+type Map__605269027<K, V> = Map__158565046<K, V>;
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type RiskTier__147234798 = {#critical; #high; #low; #medium};
+type UserRole__1073662873 = {#admin; #guest; #user};
+actor {
+  stable accessControlState :
+    {
+      var adminAssigned : Bool;
+      userRoles : Map__605269027<Principal, UserRole__1073662873>
+    };
+  stable activities :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?ActivityEvent__872769373]];
+      var elementIndex : Nat__490723111
+    };
+  stable apiKeys :
+    {
+      var root :
+        Node__46230540<Principal, List__415060402<ApiKeyRecord__140524964>>;
+      var size : Nat__490723111
+    };
+  stable audits :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?AuditRecord__903400086]];
+      var elementIndex : Nat__490723111
+    };
+  stable idCounter : {var count : Nat};
+  stable seededCallers :
+    {
+      var blockIndex : Nat__490723111;
+      var blocks : [var [var ?Text]];
+      var elementIndex : Nat__490723111
+    }
+};
