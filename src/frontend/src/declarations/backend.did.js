@@ -145,6 +145,7 @@ export const idlService = IDL.Service({
   'listApiKeys' : IDL.Func([], [IDL.Vec(ApiKeyRecord)], ['query']),
   'listAudits' : IDL.Func([], [IDL.Vec(AuditSummary)], []),
   'runAudit' : IDL.Func([AuditId], [], []),
+  'setAnthropicApiKey' : IDL.Func([IDL.Text], [], []),
   'transform' : IDL.Func(
       [TransformationInput],
       [TransformationOutput],
@@ -290,6 +291,7 @@ export const idlFactory = ({ IDL }) => {
     'listApiKeys' : IDL.Func([], [IDL.Vec(ApiKeyRecord)], ['query']),
     'listAudits' : IDL.Func([], [IDL.Vec(AuditSummary)], []),
     'runAudit' : IDL.Func([AuditId], [], []),
+    'setAnthropicApiKey' : IDL.Func([IDL.Text], [], []),
     'transform' : IDL.Func(
         [TransformationInput],
         [TransformationOutput],

@@ -225,6 +225,7 @@ export interface backendInterface {
     listApiKeys(): Promise<Array<ApiKeyRecord>>;
     listAudits(): Promise<Array<AuditSummary>>;
     runAudit(id: AuditId): Promise<void>;
+    setAnthropicApiKey(key: string): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateAuditResults(id: AuditId, results: AuditResults): Promise<void>;
 }
@@ -396,6 +397,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.runAudit(arg0);
+            return result;
+        }
+    }
+    async setAnthropicApiKey(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setAnthropicApiKey(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setAnthropicApiKey(arg0);
             return result;
         }
     }

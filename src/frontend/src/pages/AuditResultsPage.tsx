@@ -394,11 +394,13 @@ function BiasSection({ audit }: { audit: AuditRecord }) {
   const data = parseJson<BiasResultsJson>(audit.biasResults);
 
   const radarData =
-    data?.dimensions.map((d: BiasResult) => ({
+    (data?.dimensions ?? []).map((d: BiasResult) => ({
       subject:
-        d.dimension.length > 12 ? `${d.dimension.slice(0, 12)}…` : d.dimension,
+        (d.dimension ?? "").length > 12
+          ? `${(d.dimension ?? "").slice(0, 12)}…`
+          : (d.dimension ?? ""),
       score: d.score,
-      fullName: d.dimension,
+      fullName: d.dimension ?? "",
     })) ?? [];
 
   return (
@@ -407,7 +409,7 @@ function BiasSection({ audit }: { audit: AuditRecord }) {
         <span id="bias-header">Bias Analysis</span>
       </SectionHeader>
 
-      {!data || data.dimensions.length === 0 ? (
+      {!data || (data.dimensions ?? []).length === 0 ? (
         <div
           className="flex items-center justify-center h-32 border border-dashed border-border rounded-sm"
           data-ocid="bias.empty_state"
@@ -451,7 +453,7 @@ function BiasSection({ audit }: { audit: AuditRecord }) {
 
           {/* Expandable dimension panels */}
           <div className="flex-1 flex flex-col gap-2">
-            {data.dimensions.map((dim: BiasResult, idx: number) => {
+            {(data.dimensions ?? []).map((dim: BiasResult, idx: number) => {
               const isExpanded = expandedIndex === idx;
               const isHigh = dim.score > 5;
               const dimKey = `${dim.dimension}-${idx}`;
@@ -503,13 +505,13 @@ function BiasSection({ audit }: { audit: AuditRecord }) {
 
                   {isExpanded && (
                     <div className="px-4 pb-4 pt-2 bg-card/50 space-y-3 border-t border-border">
-                      {dim.examples.length > 0 && (
+                      {(dim.examples ?? []).length > 0 && (
                         <div>
                           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
                             Examples from submitted outputs
                           </p>
                           <div className="space-y-2">
-                            {dim.examples.map((ex) => (
+                            {(dim.examples ?? []).map((ex) => (
                               <blockquote
                                 key={ex.text.slice(0, 40)}
                                 className="border-l-2 border-primary pl-3 py-1"
@@ -599,7 +601,7 @@ function SafetySection({ audit }: { audit: AuditRecord }) {
         <span id="safety-header">Safety Analysis</span>
       </SectionHeader>
 
-      {!data || data.checks.length === 0 ? (
+      {!data || (data.checks ?? []).length === 0 ? (
         <div
           className="flex items-center justify-center h-32 border border-dashed border-border rounded-sm"
           data-ocid="safety.empty_state"
@@ -610,7 +612,7 @@ function SafetySection({ audit }: { audit: AuditRecord }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.checks.map((check: SafetyResult, idx: number) => {
+          {(data.checks ?? []).map((check: SafetyResult, idx: number) => {
             const checkKey = `${check.category}-${idx}`;
             return (
               <div
@@ -653,13 +655,13 @@ function SafetySection({ audit }: { audit: AuditRecord }) {
                   </p>
                 )}
 
-                {check.flaggedExamples.length > 0 && (
+                {(check.flaggedExamples ?? []).length > 0 && (
                   <div>
                     <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5">
                       Flagged examples
                     </p>
                     <div className="space-y-1.5">
-                      {check.flaggedExamples.slice(0, 2).map((ex) => (
+                      {(check.flaggedExamples ?? []).slice(0, 2).map((ex) => (
                         <blockquote
                           key={ex.slice(0, 40)}
                           className="border-l-2 border-primary/50 pl-2.5"
@@ -707,7 +709,7 @@ function RegulatorySection({ audit }: { audit: AuditRecord }) {
         </DefinitionTooltip>
       </SectionHeader>
 
-      {!data || data.results.length === 0 ? (
+      {!data || (data.results ?? []).length === 0 ? (
         <div
           className="flex items-center justify-center h-32 border border-dashed border-border rounded-sm"
           data-ocid="regulatory.empty_state"
@@ -739,89 +741,92 @@ function RegulatorySection({ audit }: { audit: AuditRecord }) {
               </tr>
             </thead>
             <tbody>
-              {data.results.map((row: RegulatoryResult, idx: number) => {
-                const isExpanded = expandedRows.has(idx);
-                const compliance = complianceIcon(row.status);
-                const rowKey = `${row.framework}-${row.article}-${idx}`;
-                return (
-                  <Fragment key={rowKey}>
-                    <tr
-                      data-ocid={`regulatory.item.${idx + 1}`}
-                      className={cn(
-                        "border-b border-border last:border-0 cursor-pointer hover:bg-card/60 transition-smooth",
-                        isExpanded && "bg-card/40",
-                      )}
-                      onClick={() => toggleRow(idx)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") toggleRow(idx);
-                      }}
-                      tabIndex={0}
-                      aria-expanded={isExpanded}
-                    >
-                      <td className="px-4 py-3">
-                        <DefinitionTooltip
-                          term={row.framework}
-                          definition={
-                            row.articleSummary ??
-                            `Regulatory framework: ${row.framework}`
-                          }
-                        >
-                          <span className="font-mono text-xs font-semibold text-foreground">
-                            {row.framework}
-                          </span>
-                        </DefinitionTooltip>
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                        {row.article}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span aria-hidden="true">{compliance.icon}</span>
-                          <span
-                            className={cn(
-                              "text-[10px] font-mono uppercase tracking-widest",
-                              compliance.cls,
-                            )}
-                          >
-                            {row.status === "non-compliant"
-                              ? "Non-Compliant"
-                              : `${row.status.charAt(0).toUpperCase()}${row.status.slice(1)}`}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-body text-xs text-foreground/80 truncate max-w-[200px]">
-                            {row.notes}
-                          </p>
-                          {isExpanded ? (
-                            <ChevronUp className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          ) : (
-                            <ChevronDown className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                    {isExpanded && (
+              {(data.results ?? []).map(
+                (row: RegulatoryResult, idx: number) => {
+                  const isExpanded = expandedRows.has(idx);
+                  const compliance = complianceIcon(row.status);
+                  const rowKey = `${row.framework}-${row.article}-${idx}`;
+                  return (
+                    <Fragment key={rowKey}>
                       <tr
-                        key={`${rowKey}-expand`}
-                        className="bg-card/20 border-b border-border"
+                        data-ocid={`regulatory.item.${idx + 1}`}
+                        className={cn(
+                          "border-b border-border last:border-0 cursor-pointer hover:bg-card/60 transition-smooth",
+                          isExpanded && "bg-card/40",
+                        )}
+                        onClick={() => toggleRow(idx)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ")
+                            toggleRow(idx);
+                        }}
+                        tabIndex={0}
+                        aria-expanded={isExpanded}
                       >
-                        <td colSpan={4} className="px-4 py-3">
-                          <p className="font-body text-sm text-foreground/90 leading-relaxed">
-                            {row.notes}
-                          </p>
-                          {row.articleSummary && (
-                            <p className="mt-2 text-xs text-muted-foreground font-mono leading-relaxed">
-                              {row.articleSummary}
+                        <td className="px-4 py-3">
+                          <DefinitionTooltip
+                            term={row.framework}
+                            definition={
+                              row.articleSummary ??
+                              `Regulatory framework: ${row.framework}`
+                            }
+                          >
+                            <span className="font-mono text-xs font-semibold text-foreground">
+                              {row.framework}
+                            </span>
+                          </DefinitionTooltip>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                          {row.article}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span aria-hidden="true">{compliance.icon}</span>
+                            <span
+                              className={cn(
+                                "text-[10px] font-mono uppercase tracking-widest",
+                                compliance.cls,
+                              )}
+                            >
+                              {row.status === "non-compliant"
+                                ? "Non-Compliant"
+                                : `${row.status.charAt(0).toUpperCase()}${row.status.slice(1)}`}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-body text-xs text-foreground/80 truncate max-w-[200px]">
+                              {row.notes}
                             </p>
-                          )}
+                            {isExpanded ? (
+                              <ChevronUp className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                            )}
+                          </div>
                         </td>
                       </tr>
-                    )}
-                  </Fragment>
-                );
-              })}
+                      {isExpanded && (
+                        <tr
+                          key={`${rowKey}-expand`}
+                          className="bg-card/20 border-b border-border"
+                        >
+                          <td colSpan={4} className="px-4 py-3">
+                            <p className="font-body text-sm text-foreground/90 leading-relaxed">
+                              {row.notes}
+                            </p>
+                            {row.articleSummary && (
+                              <p className="mt-2 text-xs text-muted-foreground font-mono leading-relaxed">
+                                {row.articleSummary}
+                              </p>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                },
+              )}
             </tbody>
           </table>
         </div>
@@ -842,17 +847,17 @@ function AuditTrailSection({ audit }: { audit: AuditRecord }) {
     },
     {
       time: formatTimestamp(audit.createdAt + BigInt(1_000_000_000)),
-      text: `Bias analysis initiated (${audit.selectedBiasDimensions.length} dimensions)`,
+      text: `Bias analysis initiated (${(audit.selectedBiasDimensions ?? []).length} dimensions)`,
     },
     {
       time: formatTimestamp(audit.createdAt + BigInt(14_000_000_000)),
-      text: `Safety analysis initiated (${audit.selectedSafetyChecks.length} checks)`,
+      text: `Safety analysis initiated (${(audit.selectedSafetyChecks ?? []).length} checks)`,
     },
-    ...(audit.selectedFrameworks.length > 0
+    ...((audit.selectedFrameworks ?? []).length > 0
       ? [
           {
             time: formatTimestamp(audit.createdAt + BigInt(27_000_000_000)),
-            text: `Regulatory mapping: ${audit.selectedFrameworks.slice(0, 2).join(", ")}${audit.selectedFrameworks.length > 2 ? ` +${audit.selectedFrameworks.length - 2} more` : ""}`,
+            text: `Regulatory mapping: ${(audit.selectedFrameworks ?? []).slice(0, 2).join(", ")}${(audit.selectedFrameworks ?? []).length > 2 ? ` +${(audit.selectedFrameworks ?? []).length - 2} more` : ""}`,
           },
         ]
       : []),
@@ -943,7 +948,7 @@ function RecommendationsSection({ audit }: { audit: AuditRecord }) {
   const data = parseJson<RecommendationsJson>(audit.recommendations);
 
   const sorted =
-    data?.items.slice().sort((a, b) => {
+    (data?.items ?? []).slice().sort((a, b) => {
       const order: Record<Priority, number> = { P1: 0, P2: 1, P3: 2 };
       return order[a.priority] - order[b.priority];
     }) ?? [];

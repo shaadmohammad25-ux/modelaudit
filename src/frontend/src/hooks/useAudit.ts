@@ -1,13 +1,14 @@
 import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createActor } from "../backend";
-import type {
-  ActivityEvent,
-  AuditId,
-  AuditInput,
-  AuditRecord,
-  AuditSummary,
-  DashboardStats,
+import {
+  type ActivityEvent,
+  type AuditId,
+  type AuditInput,
+  type AuditRecord,
+  AuditStatus,
+  type AuditSummary,
+  type DashboardStats,
 } from "../types/audit";
 
 function useBackend() {
@@ -39,7 +40,10 @@ export function useAudit(id: AuditId | undefined) {
     enabled: !!actor && !isFetching && !!id,
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data?.status === "pending" || data?.status === "processing") {
+      if (
+        data?.status === AuditStatus.pending ||
+        data?.status === AuditStatus.processing
+      ) {
         return 3000;
       }
       return false;

@@ -76,6 +76,7 @@ actor {
       var blocks : [var [var ?ActivityEvent__872769373]];
       var elementIndex : Nat__490723111
     };
+  stable var anthropicApiKey : ?Text;
   stable apiKeys :
     {
       var root :

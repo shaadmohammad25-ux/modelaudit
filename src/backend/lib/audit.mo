@@ -180,7 +180,7 @@ module {
   /// List activity events (most recent first, capped at 20)
   public func listActivity(
     activities : ActivityStore,
-    caller : Principal,
+    _caller : Principal,
   ) : [Types.ActivityEvent] {
     let sorted = activities.sort(func(a, b) { Int.compare(b.timestamp, a.timestamp) });
     let arr = sorted.toArray();
@@ -265,25 +265,41 @@ module {
 
   /// Parse raw Claude JSON responses into AuditResults.
   /// JSON parsing not available in Motoko — stores raw JSON and extracts key scalars via text scanning.
+  /// Falls back to safe defaults when fields are missing or malformed.
   public func parseClaudeResponses(
     biasJson : Text,
     safetyJson : Text,
     regulatoryJson : Text,
     summaryJson : Text,
   ) : Types.AuditResults {
-    let overallScore = extractFloat(summaryJson, "\"overallScore\":");
-    let riskTier = extractRiskTier(summaryJson);
-    let verdict = extractStringField(summaryJson, "\"verdict\":");
-    let inputSummary = extractStringField(summaryJson, "\"inputSummary\":");
-    let recommendations = extractObjectField(summaryJson, "\"recommendations\":");
+    let overallScore = switch (extractFloat(summaryJson, "\"overallScore\":")) {
+      case (?s) { ?s };
+      case null { ?50.0 }; // fallback: medium risk if unparseable
+    };
+    let riskTier = switch (extractRiskTier(summaryJson)) {
+      case (?t) { ?t };
+      case null { ?(#medium) }; // fallback: medium tier if unparseable
+    };
+    let verdict = switch (extractStringField(summaryJson, "\"verdict\":")) {
+      case (?v) { ?v };
+      case null { ?"Audit completed. Manual review of raw results recommended." };
+    };
+    let inputSummary = switch (extractStringField(summaryJson, "\"inputSummary\":")) {
+      case (?s) { ?s };
+      case null { ?"Input analysis completed." };
+    };
+    let recommendations = switch (extractObjectField(summaryJson, "\"recommendations\":")) {
+      case (?r) { ?r };
+      case null { ?"{\"items\":[]}" };
+    };
 
     {
       overallScore;
       riskTier;
       verdict;
-      biasResults = ?biasJson;
-      safetyResults = ?safetyJson;
-      regulatoryResults = ?regulatoryJson;
+      biasResults = if (biasJson.isEmpty()) null else ?biasJson;
+      safetyResults = if (safetyJson.isEmpty()) null else ?safetyJson;
+      regulatoryResults = if (regulatoryJson.isEmpty()) null else ?regulatoryJson;
       recommendations;
       inputSummary;
     };

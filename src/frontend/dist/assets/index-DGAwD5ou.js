@@ -55660,6 +55660,7 @@ Service({
   "listApiKeys": Func([], [Vec(ApiKeyRecord)], ["query"]),
   "listAudits": Func([], [Vec(AuditSummary)], []),
   "runAudit": Func([AuditId], [], []),
+  "setAnthropicApiKey": Func([Text$1], [], []),
   "transform": Func(
     [TransformationInput],
     [TransformationOutput],
@@ -55801,6 +55802,7 @@ const idlFactory = ({ IDL: IDL2 }) => {
     "listApiKeys": IDL2.Func([], [IDL2.Vec(ApiKeyRecord2)], ["query"]),
     "listAudits": IDL2.Func([], [IDL2.Vec(AuditSummary2)], []),
     "runAudit": IDL2.Func([AuditId2], [], []),
+    "setAnthropicApiKey": IDL2.Func([IDL2.Text], [], []),
     "transform": IDL2.Func(
       [TransformationInput2],
       [TransformationOutput2],
@@ -56006,6 +56008,20 @@ class Backend {
       }
     } else {
       const result = await this.actor.runAudit(arg0);
+      return result;
+    }
+  }
+  async setAnthropicApiKey(arg0) {
+    if (this.processError) {
+      try {
+        const result = await this.actor.setAnthropicApiKey(arg0);
+        return result;
+      } catch (e3) {
+        this.processError(e3);
+        throw new Error("unreachable");
+      }
+    } else {
+      const result = await this.actor.setAnthropicApiKey(arg0);
       return result;
     }
   }
@@ -59753,7 +59769,7 @@ function useAudit(id2) {
     enabled: !!actor && !isFetching && !!id2,
     refetchInterval: (query) => {
       const data = query.state.data;
-      if ((data == null ? void 0 : data.status) === "pending" || (data == null ? void 0 : data.status) === "processing") {
+      if ((data == null ? void 0 : data.status) === AuditStatus.pending || (data == null ? void 0 : data.status) === AuditStatus.processing) {
         return 3e3;
       }
       return false;
@@ -60140,14 +60156,14 @@ function VerdictPanel({ verdict, tier }) {
 function BiasSection({ audit }) {
   const [expandedIndex, setExpandedIndex] = reactExports.useState(null);
   const data = parseJson(audit.biasResults);
-  const radarData = (data == null ? void 0 : data.dimensions.map((d2) => ({
-    subject: d2.dimension.length > 12 ? `${d2.dimension.slice(0, 12)}…` : d2.dimension,
+  const radarData = ((data == null ? void 0 : data.dimensions) ?? []).map((d2) => ({
+    subject: (d2.dimension ?? "").length > 12 ? `${(d2.dimension ?? "").slice(0, 12)}…` : d2.dimension ?? "",
     score: d2.score,
-    fullName: d2.dimension
-  }))) ?? [];
+    fullName: d2.dimension ?? ""
+  })) ?? [];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { "data-ocid": "bias.section", "aria-labelledby": "bias-header", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SectionHeader$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { id: "bias-header", children: "Bias Analysis" }) }),
-    !data || data.dimensions.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+    !data || (data.dimensions ?? []).length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         className: "flex items-center justify-center h-32 border border-dashed border-border rounded-sm",
@@ -60190,7 +60206,7 @@ function BiasSection({ audit }) {
           }
         ) })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 flex flex-col gap-2", children: data.dimensions.map((dim, idx) => {
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 flex flex-col gap-2", children: (data.dimensions ?? []).map((dim, idx) => {
         const isExpanded = expandedIndex === idx;
         const isHigh = dim.score > 5;
         const dimKey = `${dim.dimension}-${idx}`;
@@ -60234,9 +60250,9 @@ function BiasSection({ audit }) {
                 }
               ),
               isExpanded && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-4 pb-4 pt-2 bg-card/50 space-y-3 border-t border-border", children: [
-                dim.examples.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                (dim.examples ?? []).length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-2", children: "Examples from submitted outputs" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-2", children: dim.examples.map((ex) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-2", children: (dim.examples ?? []).map((ex) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
                     "blockquote",
                     {
                       className: "border-l-2 border-primary pl-3 py-1",
@@ -60304,14 +60320,14 @@ function SafetySection({ audit }) {
   const data = parseJson(audit.safetyResults);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { "data-ocid": "safety.section", "aria-labelledby": "safety-header", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SectionHeader$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { id: "safety-header", children: "Safety Analysis" }) }),
-    !data || data.checks.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+    !data || (data.checks ?? []).length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         className: "flex items-center justify-center h-32 border border-dashed border-border rounded-sm",
         "data-ocid": "safety.empty_state",
         children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-muted-foreground font-mono", children: "Analysis data unavailable" })
       }
-    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: data.checks.map((check, idx) => {
+    ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: (data.checks ?? []).map((check, idx) => {
       const checkKey = `${check.category}-${idx}`;
       return /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
@@ -60349,9 +60365,9 @@ function SafetySection({ audit }) {
               )
             ] }),
             check.riskDescription && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm font-body text-foreground/80 leading-relaxed", children: check.riskDescription }),
-            check.flaggedExamples.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            (check.flaggedExamples ?? []).length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-1.5", children: "Flagged examples" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1.5", children: check.flaggedExamples.slice(0, 2).map((ex) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1.5", children: (check.flaggedExamples ?? []).slice(0, 2).map((ex) => /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "blockquote",
                 {
                   className: "border-l-2 border-primary/50 pl-2.5",
@@ -60391,7 +60407,7 @@ function RegulatorySection({ audit }) {
         children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { id: "regulatory-header", children: "Regulatory Compliance" })
       }
     ) }),
-    !data || data.results.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+    !data || (data.results ?? []).length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         className: "flex items-center justify-center h-32 border border-dashed border-border rounded-sm",
@@ -60410,68 +60426,71 @@ function RegulatorySection({ audit }) {
             /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left px-4 py-3 text-[10px] font-mono uppercase tracking-widest text-muted-foreground w-1/6", children: "Status" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "text-left px-4 py-3 text-[10px] font-mono uppercase tracking-widest text-muted-foreground", children: "Notes" })
           ] }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { children: data.results.map((row, idx) => {
-            const isExpanded = expandedRows.has(idx);
-            const compliance = complianceIcon(row.status);
-            const rowKey = `${row.framework}-${row.article}-${idx}`;
-            return /* @__PURE__ */ jsxRuntimeExports.jsxs(reactExports.Fragment, { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                "tr",
-                {
-                  "data-ocid": `regulatory.item.${idx + 1}`,
-                  className: cn(
-                    "border-b border-border last:border-0 cursor-pointer hover:bg-card/60 transition-smooth",
-                    isExpanded && "bg-card/40"
-                  ),
-                  onClick: () => toggleRow(idx),
-                  onKeyDown: (e3) => {
-                    if (e3.key === "Enter" || e3.key === " ") toggleRow(idx);
-                  },
-                  tabIndex: 0,
-                  "aria-expanded": isExpanded,
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-                      DefinitionTooltip,
-                      {
-                        term: row.framework,
-                        definition: row.articleSummary ?? `Regulatory framework: ${row.framework}`,
-                        children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-semibold text-foreground", children: row.framework })
-                      }
-                    ) }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-3 font-mono text-xs text-muted-foreground", children: row.article }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { "aria-hidden": "true", children: compliance.icon }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(
-                        "span",
+          /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { children: (data.results ?? []).map(
+            (row, idx) => {
+              const isExpanded = expandedRows.has(idx);
+              const compliance = complianceIcon(row.status);
+              const rowKey = `${row.framework}-${row.article}-${idx}`;
+              return /* @__PURE__ */ jsxRuntimeExports.jsxs(reactExports.Fragment, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "tr",
+                  {
+                    "data-ocid": `regulatory.item.${idx + 1}`,
+                    className: cn(
+                      "border-b border-border last:border-0 cursor-pointer hover:bg-card/60 transition-smooth",
+                      isExpanded && "bg-card/40"
+                    ),
+                    onClick: () => toggleRow(idx),
+                    onKeyDown: (e3) => {
+                      if (e3.key === "Enter" || e3.key === " ")
+                        toggleRow(idx);
+                    },
+                    tabIndex: 0,
+                    "aria-expanded": isExpanded,
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        DefinitionTooltip,
                         {
-                          className: cn(
-                            "text-[10px] font-mono uppercase tracking-widest",
-                            compliance.cls
-                          ),
-                          children: row.status === "non-compliant" ? "Non-Compliant" : `${row.status.charAt(0).toUpperCase()}${row.status.slice(1)}`
+                          term: row.framework,
+                          definition: row.articleSummary ?? `Regulatory framework: ${row.framework}`,
+                          children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-xs font-semibold text-foreground", children: row.framework })
                         }
-                      )
-                    ] }) }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-2", children: [
-                      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-body text-xs text-foreground/80 truncate max-w-[200px]", children: row.notes }),
-                      isExpanded ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "h-3 w-3 text-muted-foreground flex-shrink-0" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "h-3 w-3 text-muted-foreground flex-shrink-0" })
-                    ] }) })
-                  ]
-                }
-              ),
-              isExpanded && /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "tr",
-                {
-                  className: "bg-card/20 border-b border-border",
-                  children: /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { colSpan: 4, className: "px-4 py-3", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-body text-sm text-foreground/90 leading-relaxed", children: row.notes }),
-                    row.articleSummary && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-xs text-muted-foreground font-mono leading-relaxed", children: row.articleSummary })
-                  ] })
-                },
-                `${rowKey}-expand`
-              )
-            ] }, rowKey);
-          }) })
+                      ) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-3 font-mono text-xs text-muted-foreground", children: row.article }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { "aria-hidden": "true", children: compliance.icon }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          "span",
+                          {
+                            className: cn(
+                              "text-[10px] font-mono uppercase tracking-widest",
+                              compliance.cls
+                            ),
+                            children: row.status === "non-compliant" ? "Non-Compliant" : `${row.status.charAt(0).toUpperCase()}${row.status.slice(1)}`
+                          }
+                        )
+                      ] }) }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "px-4 py-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-2", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-body text-xs text-foreground/80 truncate max-w-[200px]", children: row.notes }),
+                        isExpanded ? /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronUp, { className: "h-3 w-3 text-muted-foreground flex-shrink-0" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronDown, { className: "h-3 w-3 text-muted-foreground flex-shrink-0" })
+                      ] }) })
+                    ]
+                  }
+                ),
+                isExpanded && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "tr",
+                  {
+                    className: "bg-card/20 border-b border-border",
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsxs("td", { colSpan: 4, className: "px-4 py-3", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-body text-sm text-foreground/90 leading-relaxed", children: row.notes }),
+                      row.articleSummary && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-xs text-muted-foreground font-mono leading-relaxed", children: row.articleSummary })
+                    ] })
+                  },
+                  `${rowKey}-expand`
+                )
+              ] }, rowKey);
+            }
+          ) })
         ] })
       }
     )
@@ -60487,16 +60506,16 @@ function AuditTrailSection({ audit }) {
     },
     {
       time: formatTimestamp(audit.createdAt + BigInt(1e9)),
-      text: `Bias analysis initiated (${audit.selectedBiasDimensions.length} dimensions)`
+      text: `Bias analysis initiated (${(audit.selectedBiasDimensions ?? []).length} dimensions)`
     },
     {
       time: formatTimestamp(audit.createdAt + BigInt(14e9)),
-      text: `Safety analysis initiated (${audit.selectedSafetyChecks.length} checks)`
+      text: `Safety analysis initiated (${(audit.selectedSafetyChecks ?? []).length} checks)`
     },
-    ...audit.selectedFrameworks.length > 0 ? [
+    ...(audit.selectedFrameworks ?? []).length > 0 ? [
       {
         time: formatTimestamp(audit.createdAt + BigInt(27e9)),
-        text: `Regulatory mapping: ${audit.selectedFrameworks.slice(0, 2).join(", ")}${audit.selectedFrameworks.length > 2 ? ` +${audit.selectedFrameworks.length - 2} more` : ""}`
+        text: `Regulatory mapping: ${(audit.selectedFrameworks ?? []).slice(0, 2).join(", ")}${(audit.selectedFrameworks ?? []).length > 2 ? ` +${(audit.selectedFrameworks ?? []).length - 2} more` : ""}`
       }
     ] : [],
     {
@@ -60564,10 +60583,10 @@ function AuditTrailSection({ audit }) {
 function RecommendationsSection({ audit }) {
   const [expandedIndex, setExpandedIndex] = reactExports.useState(0);
   const data = parseJson(audit.recommendations);
-  const sorted = (data == null ? void 0 : data.items.slice().sort((a2, b2) => {
+  const sorted = ((data == null ? void 0 : data.items) ?? []).slice().sort((a2, b2) => {
     const order = { P1: 0, P2: 1, P3: 2 };
     return order[a2.priority] - order[b2.priority];
-  })) ?? [];
+  }) ?? [];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { "data-ocid": "recommendations.section", "aria-labelledby": "recs-header", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SectionHeader$1, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { id: "recs-header", children: "Remediation Recommendations" }) }),
     sorted.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx(

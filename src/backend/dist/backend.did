@@ -148,6 +148,7 @@ service : {
   listApiKeys: () -> (vec ApiKeyRecord) query;
   listAudits: () -> (vec AuditSummary);
   runAudit: (id: AuditId) -> ();
+  setAnthropicApiKey: (key: text) -> ();
   transform: (input: TransformationInput) -> (TransformationOutput) query;
   updateAuditResults: (id: AuditId, results: AuditResults) -> ();
 }

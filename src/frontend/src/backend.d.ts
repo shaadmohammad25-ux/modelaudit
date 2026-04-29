@@ -142,6 +142,7 @@ export interface backendInterface {
     listApiKeys(): Promise<Array<ApiKeyRecord>>;
     listAudits(): Promise<Array<AuditSummary>>;
     runAudit(id: AuditId): Promise<void>;
+    setAnthropicApiKey(key: string): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateAuditResults(id: AuditId, results: AuditResults): Promise<void>;
 }

@@ -4,7 +4,6 @@ import Principal "mo:core/Principal";
 import AccessControl "mo:caffeineai-authorization/access-control";
 import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
 import Types "types/audit";
-import AuditLib "lib/audit";
 import AuditMixin "mixins/audit-api";
 
 actor {

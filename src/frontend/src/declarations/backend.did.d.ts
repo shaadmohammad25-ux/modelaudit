@@ -137,6 +137,7 @@ export interface _SERVICE {
   'listApiKeys' : ActorMethod<[], Array<ApiKeyRecord>>,
   'listAudits' : ActorMethod<[], Array<AuditSummary>>,
   'runAudit' : ActorMethod<[AuditId], undefined>,
+  'setAnthropicApiKey' : ActorMethod<[string], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'updateAuditResults' : ActorMethod<[AuditId, AuditResults], undefined>,
 }

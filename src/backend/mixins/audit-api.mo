@@ -21,6 +21,9 @@ mixin (
   // ─── Seeding tracker ──────────────────────────────────────────────────────
   let seededCallers = List.empty<Text>();
 
+  /// Stored Anthropic API key (set by canister controller)
+  var anthropicApiKey : ?Text = null;
+
   /// Seed sample data for a caller if they have no audits yet
   func seedIfEmpty(caller : Principal) {
     let callerText = caller.toText();
@@ -35,6 +38,14 @@ mixin (
   };
 
   // ─── Public endpoints ─────────────────────────────────────────────────────
+
+  /// Set the Anthropic API key (controller only)
+  public shared ({ caller }) func setAnthropicApiKey(key : Text) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can set the API key");
+    };
+    anthropicApiKey := ?key;
+  };
 
   /// Create a new audit record with status #pending
   public shared ({ caller }) func createAudit(input : Types.AuditInput) : async Types.AuditId {
@@ -117,7 +128,11 @@ mixin (
     );
 
     let claudeUrl = "https://api.anthropic.com/v1/messages";
-    let authHeader : OutCall.Header = { name = "x-api-key"; value = "ANTHROPIC_API_KEY" };
+    let keyValue = switch (anthropicApiKey) {
+      case (?k) { k };
+      case null { Runtime.trap("Anthropic API key not configured. Call setAnthropicApiKey first.") };
+    };
+    let authHeader : OutCall.Header = { name = "x-api-key"; value = keyValue };
     let versionHeader : OutCall.Header = { name = "anthropic-version"; value = "2023-06-01" };
     let contentHeader : OutCall.Header = { name = "Content-Type"; value = "application/json" };
     let extraHeaders = [authHeader, versionHeader, contentHeader];

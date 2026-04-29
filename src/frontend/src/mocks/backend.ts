@@ -95,6 +95,7 @@ export const mockBackend: backendInterface = {
     { id: "audit-005", status: AuditStatus.pending, completedAt: undefined, overallScore: undefined, createdAt: BigInt(Date.now() - 300000) * BigInt(1000000), riskTier: undefined, deploymentContext: "hiring", modelVersion: "v1.5", modelName: "TalentFilter" },
   ],
   runAudit: async () => undefined,
+  setAnthropicApiKey: async () => undefined,
   transform: async (input) => input.response,
   updateAuditResults: async () => undefined,
 };
